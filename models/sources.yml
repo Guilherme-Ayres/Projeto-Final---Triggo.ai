@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: origem
+    database: DATASUS_DB
+    schema: PUBLIC
+    tables:
+      - name: mortalidades_origem
+      - name: nascimentos_vivos_origem

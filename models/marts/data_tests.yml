@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: dim_localidade
+    description: "Tabela de dimensão com informações sobre a localidade."
+    columns:
+      - name: id_localidade
+        description: "Chave única da localidade."
+        tests:
+          - unique
+          - not_null
+      - name: municipio_nome
+        description: "Nome do município."
+        tests:
+          - not_null
+
+  - name: fat_mortalidades
+    description: "Tabela de fato com o total de mortalidades por localidade e ano."
+    columns:
+      - name: id_localidade
+        description: "Chave estrangeira para a dimensão de localidade."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_localidade')
+              field: id_localidade
+      - name: ano
+        description: "Ano do registro."
+        tests:
+          - not_null
+      - name: total_mortalidades_2023
+        description: "Total de mortalidades para o ano de 2023."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ["id_localidade", "ano"]
+
+  - name: fat_nascimentos_vivos
+    description: "Tabela de fato com o total de nascimentos por localidade e ano."
+    columns:
+      - name: id_localidade
+        description: "Chave estrangeira para a dimensão de localidade."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_localidade')
+              field: id_localidade
+      - name: ano
+        description: "Ano do registro."
+        tests:
+          - not_null
+      - name: total_nascimentos_2023
+        description: "Total de nascimentos para o ano de 2023."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ["id_localidade", "ano"]
