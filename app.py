@@ -1,6 +1,7 @@
 import streamlit as st
 import snowflake.connector
 import pandas as pd
+import plotly.express as px
 
 st.title('Análise de Nascimentos e Mortalidades no Brasil - 2023')
 
@@ -27,7 +28,6 @@ def get_data():
     ORDER BY
         m.total_mortalidades_2023 DESC
     """
-    
     cursor = conn.cursor()
     cursor.execute(query)
     data = cursor.fetchall()
@@ -40,22 +40,36 @@ df_sem_total = df[df["MUNICIPIO_NOME"].str.upper() != "TOTAL"]
 
 total_mortes = df["TOTAL_MORTALIDADES_2023"].sum()
 total_nascimentos = df["TOTAL_NASCIMENTOS_2023"].sum()
-top_morte = df_sem_total.loc[df_sem_total["TOTAL_MORTALIDADES_2023"].idxmax(), "MUNICIPIO_NOME"]
-top_nasc = df_sem_total.loc[df_sem_total["TOTAL_NASCIMENTOS_2023"].idxmax(), "MUNICIPIO_NOME"]
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2 = st.columns(2)
 col1.metric("💀 Total Mortalidades", f"{total_mortes:,}".replace(",", "."))
 col2.metric("👶 Total Nascimentos", f"{total_nascimentos:,}".replace(",", "."))
-col3.metric("🏙️ Maior Mortalidade", top_morte)
-col4.metric("🏙️ Maior Natalidade", top_nasc)
 
 st.header('📊 Top 10 Municípios em Mortalidade')
-st.bar_chart(df_sem_total.sort_values("TOTAL_MORTALIDADES_2023", ascending=False).head(10), 
-             x='MUNICIPIO_NOME', y='TOTAL_MORTALIDADES_2023')
+top_mortes = df_sem_total.sort_values("TOTAL_MORTALIDADES_2023", ascending=False).head(10)
+fig1 = px.bar(
+    top_mortes,
+    x="MUNICIPIO_NOME",
+    y="TOTAL_MORTALIDADES_2023",
+    title="Top 10 Municípios com Maior Mortalidade",
+    text="TOTAL_MORTALIDADES_2023"
+)
+fig1.update_traces(texttemplate='%{text:,}', textposition='outside')
+fig1.update_layout(xaxis={'categoryorder':'total descending'})
+st.plotly_chart(fig1, use_container_width=True)
 
 st.header('📊 Top 10 Municípios em Nascimentos')
-st.bar_chart(df_sem_total.sort_values("TOTAL_NASCIMENTOS_2023", ascending=False).head(10), 
-             x='MUNICIPIO_NOME', y='TOTAL_NASCIMENTOS_2023')
+top_nasc = df_sem_total.sort_values("TOTAL_NASCIMENTOS_2023", ascending=False).head(10)
+fig2 = px.bar(
+    top_nasc,
+    x="MUNICIPIO_NOME",
+    y="TOTAL_NASCIMENTOS_2023",
+    title="Top 10 Municípios com Maior Natalidade",
+    text="TOTAL_NASCIMENTOS_2023"
+)
+fig2.update_traces(texttemplate='%{text:,}', textposition='outside')
+fig2.update_layout(xaxis={'categoryorder':'total descending'})
+st.plotly_chart(fig2, use_container_width=True)
 
 st.subheader('📄 Dados Completos')
 st.dataframe(df)
